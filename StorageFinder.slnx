@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="src\StorageFinder.Core\StorageFinder.Core.csproj" />
+  <Project Path="src\StorageFinder.App\StorageFinder.App.csproj" />
+  <Project Path="tests\StorageFinder.Core.Tests\StorageFinder.Core.Tests.csproj" />
+</Solution>

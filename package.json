@@ -1,0 +1,9 @@
+{
+  "name": "storagefinder-ui",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests\\web\\layout.test.js",
+    "test:ui": "node tests\\web\\ui.test.js"
+  }
+}

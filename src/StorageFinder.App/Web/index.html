@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; frame-src 'none'">
+  <title>StorageFinder</title>
+  <link rel="icon" href="StorageFinder.ico">
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand"><img class="brand-mark" src="StorageFinder.png" alt="" aria-hidden="true"><div>StorageFinder<span class="brand-caption">DISK SPACE, MADE VISIBLE</span></div></div>
+    <div class="header-right"><span class="local-badge"><span></span> Local &amp; private</span><span class="version">.NET 10 + WebView2</span></div>
+  </header>
+
+  <main id="picker" class="picker">
+    <div class="eyebrow">A LITTLE PERSPECTIVE ON YOUR STORAGE</div>
+    <h1>Find where your<br><span>space goes.</span></h1>
+    <p class="intro">Your disk, one square at a time. Choose a drive to explore its files<br class="wide-only"> and folders in a live, interactive map.</p>
+    <div class="section-heading"><h2>Choose a drive</h2><button id="refresh-drives" class="text-button">Refresh drives <span aria-hidden="true">&#8635;</span></button></div>
+    <div id="drives" class="drives" aria-live="polite"><p class="muted">Finding your drives...</p></div>
+    <div class="picker-notes"><span><b>01</b> Pick a drive</span><span><b>02</b> Watch your map build</span><span><b>03</b> Double-click to dive deeper</span></div>
+    <div class="privacy-note">Read-only scanning. Nothing is uploaded, moved, or deleted.</div>
+  </main>
+
+  <main id="explorer" class="explorer" hidden>
+    <div class="toolbar">
+      <button id="change-drive" class="button subtle">Change drive</button>
+      <span class="toolbar-divider"></span>
+      <button id="up" class="icon-button" title="Go to parent folder (Alt+Up)" aria-label="Go to parent folder">&#8593;</button>
+      <nav id="breadcrumbs" aria-label="Folder breadcrumbs"></nav>
+      <button id="rescan" class="button subtle" title="Rescan the entire drive">Rescan</button>
+      <button id="cancel" class="button subtle" hidden>Cancel scan</button>
+    </div>
+    <div class="scan-banner">
+      <div class="scan-status"><span id="status-dot" class="status-dot"></span><strong id="phase" role="status">Preparing scan</strong><span id="scan-percentage" class="scan-percentage">Calculating progress</span><span id="scan-summary"></span></div>
+      <div class="progress-track" id="progress" role="progressbar" aria-label="Scan progress" aria-valuemin="0" aria-valuemax="100" aria-valuetext="Calculating progress"><div></div></div>
+      <div id="current-path" class="current-path"></div>
+    </div>
+    <div class="workspace">
+      <section class="map-section" aria-label="Disk usage treemap">
+        <div class="map-heading"><div><span class="eyebrow">STORAGE MAP</span><h2 id="map-title">Your drive</h2></div><div class="map-actions"><span id="detail-hint" class="map-hint">Single-click for detail &middot; double-click to zoom</span><button id="reset-detail" class="text-button" hidden>Reset detail</button></div></div>
+        <div id="map-container" class="map-container">
+          <canvas id="treemap" tabindex="0" aria-label="Interactive disk usage treemap. Double-click folders to zoom; use the folder list for keyboard navigation."></canvas>
+          <div id="map-empty" class="map-empty"><span class="empty-icon" aria-hidden="true">&#9638;</span><h3>Discovering your files</h3><p>The map will build here as the scan runs.</p></div>
+          <div id="tooltip" class="tooltip" hidden><strong></strong><span></span><small></small></div>
+        </div>
+        <div class="map-footer"><div class="legend"><span><i class="folder-swatch"></i>Folders</span><span><i class="file-swatch"></i>Files</span></div><span>Area = file size <span class="footer-dot">&middot;</span> Logical sizes, not allocated disk space</span></div>
+      </section>
+      <aside class="inspector">
+        <div class="eyebrow">CURRENT FOLDER</div><h2 id="folder-name"></h2><div id="folder-path" class="folder-path"></div>
+        <div id="folder-size" class="folder-size">0 B</div>
+        <div class="folder-stats"><div><strong id="folder-files">0</strong><span>files</span></div><div><strong id="folder-folders">0</strong><span>folders</span></div></div>
+        <div class="selection" id="selection" hidden><span class="eyebrow">SELECTED ITEM</span><strong id="selected-name"></strong><span id="selected-size"></span><button id="open-selected" class="text-button">Explore folder &#8594;</button></div>
+        <div class="contents-heading"><h3>Largest items</h3><span id="items-count"></span></div>
+        <div id="contents" class="contents" aria-label="Folder contents"></div>
+        <p class="inspector-tip">Single-click a folder box to reveal its largest contents in place. Double-click to zoom; right-click to open in Explorer.</p>
+      </aside>
+    </div>
+    <footer class="status-footer"><span id="monitor-status">Background scanner active</span><span id="skipped">Reparse points are not followed</span></footer>
+    <div id="warning" class="warning" role="status" hidden></div>
+  </main>
+  <div id="context-menu" class="context-menu" role="menu" aria-label="Item actions" hidden>
+    <div id="context-name" class="context-name"></div>
+    <button id="open-explorer" role="menuitem">Open folder in Explorer</button>
+  </div>
+  <div id="error" class="error-banner" role="alert" hidden><span></span><button id="dismiss-error" class="text-button" aria-label="Dismiss error">Dismiss</button></div>
+</body>
+</html>
