@@ -62,7 +62,7 @@ internal sealed partial class MainForm
 
     private static Button CreateCaptionButton(string name, string glyph)
     {
-        var button = new Button
+        var button = new CaptionButton
         {
             AccessibleName = name,
             Text = glyph,
@@ -78,6 +78,17 @@ internal sealed partial class MainForm
         button.FlatAppearance.MouseOverBackColor = Color.FromArgb(42, 58, 76);
         button.FlatAppearance.MouseDownBackColor = Color.FromArgb(53, 75, 96);
         return button;
+    }
+
+    private sealed class CaptionButton : Button
+    {
+        public CaptionButton()
+        {
+            SetStyle(ControlStyles.Selectable, false);
+            TabStop = false;
+        }
+
+        public override void NotifyDefault(bool value) => base.NotifyDefault(false);
     }
 
     private void ToggleMaximize() =>
