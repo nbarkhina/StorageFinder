@@ -4,18 +4,19 @@ namespace StorageFinder.App;
 
 internal sealed class DiagnosticLog
 {
+    private bool loggingEnabled = false;
     private readonly object _gate = new();
     private readonly Action<string> _reportError;
     private bool _failed;
 
-    public string DirectoryPath { get; } = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "StorageFinder", "Logs");
+    public string DirectoryPath { get; } = "Logs";
     public string FilePath { get; }
 
     public DiagnosticLog(Action<string> reportError)
     {
         _reportError = reportError;
-        FilePath = Path.Combine(DirectoryPath, $"session-{DateTime.UtcNow:yyyyMMdd-HHmmss-fff}-{Environment.ProcessId}.log");
+        FilePath = Path.Combine(DirectoryPath, DateTime.Now.ToShortDateString().Replace('/', '_') +".txt");
+
         try
         {
             Directory.CreateDirectory(DirectoryPath);
@@ -28,6 +29,9 @@ internal sealed class DiagnosticLog
 
     public void Write(string message)
     {
+        if (!loggingEnabled)
+            return;
+
         lock (_gate)
         {
             if (_failed)

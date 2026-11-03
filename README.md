@@ -64,6 +64,10 @@ The app's own log directory is excluded from scanning and monitoring to prevent 
 
 The WebView2 NuGet package is the only application dependency. The scanner and its regression runner use only the .NET libraries; the layout checks use Node's built-in test runner.
 
+To build run `build.bat`
+
+or to build it manually -
+
 ```powershell
 dotnet build .\StorageFinder.slnx --configuration Release
 dotnet run --project .\tests\StorageFinder.Core.Tests --configuration Release
