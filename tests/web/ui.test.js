@@ -69,12 +69,12 @@ try {
     let listeners = [], revision = 0, expandedPath = null, focused = root, lastPhase = "watching";
     const messages = [];
     function emit(data) { listeners.forEach(listener => listener({ data })); }
-    function publish(tree = root, phase = "watching", scanPercent = phase === "watching" || phase === "updating" ? 100 : 37.5) {
+    function publish(tree = root, phase = "watching", scanPercent = phase === "watching" || phase === "updating" ? 100 : 37.5, currentPath = "", warning = null) {
       focused = tree;
       lastPhase = phase;
       const breadcrumbs = [{ path: root.path, name: root.name }];
       if (tree !== root) breadcrumbs.push({ path: tree.path, name: tree.name });
-      emit({ type: "snapshot", snapshot: { rootPath: root.path, phase, monitoring: true, scannedBytes: root.size, fileCount: root.fileCount, folderCount: root.folderCount, skippedEntries: 4, currentPath: "", warning: null, revision: ++revision, tree, breadcrumbs, scanPercent, progressIsEstimated: scanPercent !== null && phase !== "watching" && phase !== "updating", expandedPath } });
+      emit({ type: "snapshot", snapshot: { rootPath: root.path, phase, monitoring: true, scannedBytes: root.size, fileCount: root.fileCount, folderCount: root.folderCount, skippedEntries: 4, currentPath, warning, revision: ++revision, tree, breadcrumbs, scanPercent, progressIsEstimated: scanPercent !== null && phase !== "watching" && phase !== "updating", expandedPath } });
     }
     function find(node, target) {
       if (node.path === target) return node;
@@ -122,6 +122,11 @@ try {
   await page.screenshot({ path: path.join(artifacts, "drive-picker.png") });
   await page.locator(".drive-card").first().click();
   await page.waitForFunction(() => document.getElementById("folder-size").textContent !== "0 B");
+  assert.equal(await page.locator("#phase").textContent(), "Scanning drive");
+  await page.evaluate(() => window.testHarness.publish(window.testHarness.root, "scanning", 37.5, "C:\\Games", "Could not read C:\\Private: Access denied"));
+  assert.equal(await page.locator("#current-path").textContent(), "C:\\Games");
+  assert.equal(await page.locator("#warning").isVisible(), true);
+  assert.equal(await page.locator("#warning").textContent(), "Could not read C:\\Private: Access denied");
   assert.equal(await page.locator("#progress").getAttribute("aria-valuenow"), "37.5");
   assert.equal(await page.locator("#scan-percentage").textContent(), "Estimated 37.5% scanned");
   assert.equal(await page.locator("#progress > div").evaluate(element => element.style.width), "37.5%");
@@ -129,13 +134,28 @@ try {
   await page.evaluate(() => window.testHarness.publish(window.testHarness.root, "scanning", null));
   assert.equal(await page.locator("#progress").getAttribute("aria-valuenow"), null);
   assert.equal(await page.locator("#scan-percentage").textContent(), "Calculating progress");
-  await page.evaluate(() => window.testHarness.publish());
+  await page.evaluate(() => window.testHarness.publish(window.testHarness.root, "watching", 100, "", "Could not read C:\\Private: Access denied"));
   await page.waitForFunction(() => document.getElementById("progress").getAttribute("aria-valuenow") === "100");
-  await page.evaluate(() => window.testHarness.publish(window.testHarness.root, "updating"));
-  await page.waitForFunction(() => document.getElementById("phase").textContent === "Updating map");
+  assert.equal(await page.locator("#warning").isVisible(), false);
+  assert.equal(await page.locator("#warning").textContent(), "");
+  assert.equal(await page.locator("#warning").getAttribute("title"), "");
+  for (const phase of ["updating", "watching", "updating", "watching"]) {
+    await page.evaluate(phase => window.testHarness.publish(window.testHarness.root, phase, 100, phase === "updating" ? "C:\\Games" : "", "Could not read C:\\Private: Access denied"), phase);
+    assert.equal(await page.locator("#warning").isVisible(), false);
+    assert.equal(await page.locator("#phase").textContent(), "Live watching for changes");
+    assert.equal(await page.locator("#current-path").textContent(), "Map is up to date. Double-click a folder to explore, or use the breadcrumbs to go back.");
+    assert.equal(await page.locator("#current-path").getAttribute("title"), "");
+    assert.equal(await page.locator("#status-dot").evaluate(element => element.classList.contains("live")), true);
+  }
   assert.equal(await page.locator("#progress").getAttribute("aria-valuenow"), "100");
   assert.equal(await page.locator("#cancel").isVisible(), false);
   assert.equal(await page.locator("#rescan").isDisabled(), false);
+  await page.evaluate(() => window.testHarness.publish(window.testHarness.root, "watching", 100, "", "Live monitoring unavailable: Access denied"));
+  assert.equal(await page.locator("#warning").isVisible(), true);
+  assert.equal(await page.locator("#warning").textContent(), "Live monitoring unavailable: Access denied");
+  await page.locator("#rescan").click();
+  await page.waitForFunction(() => document.getElementById("phase").textContent === "Scanning drive");
+  assert.equal(await page.locator("#rescan").isDisabled(), true);
   await page.evaluate(() => window.testHarness.publish());
   await page.locator("#treemap").focus();
   await page.screenshot({ path: path.join(artifacts, "treemap.png") });

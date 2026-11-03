@@ -144,15 +144,15 @@ function updateSnapshot(next) {
   $("picker").hidden = true;
   $("explorer").hidden = false;
   $("phase").textContent = next.phase === "error" ? "Scan interrupted" : next.phase === "scanning" ? "Scanning drive" :
-    next.phase === "updating" ? "Updating map" : next.monitoring ? "Live \u00b7 watching for changes" : "Scan complete \u00b7 monitoring unavailable";
+    next.monitoring ? "Live watching for changes" : "Scan complete \u00b7 monitoring unavailable";
   $("status-dot").classList.toggle("live", !scanning && next.monitoring);
   $("status-dot").classList.toggle("failed", next.phase === "error");
   $("scan-summary").textContent = `${formatBytes(next.scannedBytes)} discovered \u00b7 ${next.fileCount.toLocaleString()} files \u00b7 ${next.folderCount.toLocaleString()} folders`;
   renderProgress(next);
   $("current-path").textContent = next.phase === "error" ? "Scan could not finish. Check the drive connection or permissions, then rescan." :
-    next.currentPath || (scanning ? "Discovering files and updating the estimate..." : next.phase === "updating" ? "Applying filesystem changes..." :
-      "Map is up to date. Double-click a folder to explore, or use the breadcrumbs to go back.");
-  $("current-path").title = next.currentPath;
+    scanning ? next.currentPath || "Discovering files and updating the estimate..." :
+      "Map is up to date. Double-click a folder to explore, or use the breadcrumbs to go back.";
+  $("current-path").title = scanning ? next.currentPath : "";
   $("rescan").disabled = scanning;
   $("cancel").hidden = !scanning;
   $("up").disabled = next.breadcrumbs.length < 2;
@@ -180,9 +180,10 @@ function updateSnapshot(next) {
   $("folder-folders").textContent = tree.folderCount.toLocaleString();
   $("monitor-status").textContent = next.monitoring ? "Live monitoring on \u00b7 changes are detected automatically" : "Live monitoring off \u00b7 rescan to refresh";
   $("skipped").textContent = `${next.skippedEntries.toLocaleString()} skipped / unreadable \u00b7 reparse points not followed`;
-  $("warning").hidden = !next.warning;
-  $("warning").textContent = next.warning || "";
-  $("warning").title = next.warning || "";
+  const warning = next.scanPercent === 100 && next.phase !== "error" && next.warning?.startsWith("Could not read ") ? "" : next.warning || "";
+  $("warning").hidden = !warning;
+  $("warning").textContent = warning;
+  $("warning").title = warning;
   renderContents(tree.children);
   selectedNode = findNode(tree, selectedPath);
   showSelection();
