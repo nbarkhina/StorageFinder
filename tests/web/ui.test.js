@@ -114,6 +114,9 @@ try {
   });
   await page.goto(`http://127.0.0.1:${server.address().port}`);
   await page.locator(".drive-card").first().waitFor();
+  await page.waitForFunction(() => document.activeElement?.id === "picker");
+  await page.keyboard.press("Tab");
+  assert.equal(await page.locator("#refresh-drives").evaluate(button => button === document.activeElement), true);
   assert.equal(await page.title(), "StorageFinder");
   assert.match(await page.locator(".brand").textContent(), /StorageFinder/);
   assert.equal(await page.locator(".brand-mark").evaluate(image => image.complete && image.naturalWidth > 0), true);

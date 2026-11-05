@@ -108,6 +108,7 @@ internal sealed partial class MainForm : Form
                     _webView.Visible = true;
                     _splash.Visible = false;
                     _splash.StopAnimation();
+                    await _webView.CoreWebView2.ExecuteScriptAsync("document.getElementById('picker').focus({ preventScroll: true });");
                     _log.Write("Interface ready; startup splash hidden");
                     Post(new { type = "drives", drives = await Task.Run(GetDrives) });
                     break;

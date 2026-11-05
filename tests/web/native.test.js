@@ -206,6 +206,9 @@ try {
   if (!page) page = await context.waitForEvent("page");
   await page.waitForURL("https://storagefinder.local/index.html");
   await page.locator(".drive-card:not(:disabled)").first().waitFor();
+  await page.waitForFunction(() => document.activeElement?.id === "picker");
+  await page.keyboard.press("Tab");
+  assert.equal(await page.locator("#refresh-drives").evaluate(button => button === document.activeElement), true);
   await windowChrome(app.pid);
   const errors = [];
   page.on("pageerror", error => errors.push(error.message));
